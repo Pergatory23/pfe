@@ -1,3 +1,4 @@
+import 'package:dashboard/helpers/colors.dart';
 import 'package:dashboard/views/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,13 +10,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color(0xFF363567),
-      bottomNavigationBar: Container(
-        height: 80,
-        width: double.infinity,
-        color: const Color(0xFF373856),
-      ),
+      backgroundColor: primaryColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -32,7 +29,7 @@ class HomeScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(80),
                       gradient: const LinearGradient(
                         begin: Alignment.bottomLeft,
-                        colors: [Color(0xffFD8BAB), Color(0xFFFD44C4)],
+                        colors: [secondaryLighterColor, secondaryColor],
                       ),
                     ),
                   ),
@@ -42,6 +39,7 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (GetPlatform.isMobile) SizedBox(height: size.height * 0.3),
                       const Text(
                         'Bienvenue dans votre tableau de bord!',
                         style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
@@ -50,12 +48,17 @@ class HomeScreen extends StatelessWidget {
                       const Text(
                         'Ici, vous pouvez voir un aperçu de vos données et gérer les fonctionnalités de votre application.',
                         style: TextStyle(color: Colors.white, fontSize: 18),
+                        textAlign: TextAlign.justify,
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => Get.toNamed(MenuScreen.routeName),
-                        style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFFD44C4))),
-                        child: const Text('commencer'),
+                      const SizedBox(height: 50),
+                      Align(
+                        alignment: GetPlatform.isMobile ? Alignment.center : Alignment.centerLeft,
+                        child: ElevatedButton(
+                          onPressed: () => Get.toNamed(MenuScreen.routeName),
+                          style:
+                              ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(secondaryColor), minimumSize: const MaterialStatePropertyAll(Size(200, 50))),
+                          child: const Text('commencer'),
+                        ),
                       ),
                     ],
                   ),

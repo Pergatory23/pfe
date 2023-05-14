@@ -1,3 +1,4 @@
+import 'package:dashboard/helpers/colors.dart';
 import 'package:dashboard/views/widgets/dashboard_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,6 +7,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../controllers/dashboard_controller.dart';
 import '../helpers/helpers.dart';
 import '../models/chart_data.dart';
+import '../models/chart_model.dart';
 import 'filter_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -16,40 +18,64 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color(0xFF363567),
+          backgroundColor: primaryColor,
           title: const Text('Dashboard'),
         ),
         drawer: const DashboardDrawer(),
         body: GetBuilder<DashboardController>(
-          builder: (controller) => controller.chartData.isEmpty || controller.isFetchError
-              ? controller.isFetchError
-                  ? const Center(child: Text('An error has been occured with this provided filtering data'))
-                  : const Center(child: CircularProgressIndicator())
-              : ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-                  child: SingleChildScrollView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      padding: const EdgeInsets.all(10),
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      children: [
-                        _BuildPieChartData(chartData: controller.chartData),
-                        _BuildTableData(chartData: controller.chartData),
-                        _BuildLineChartData(chartData: controller.chartData),
-                        _BuildScatterChartData(chartData: controller.chartData),
-                      ],
+          builder: (controller) => Obx(
+            () => controller.isLoading.value
+                ? const Center(child: CircularProgressIndicator())
+                : ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                    child: SingleChildScrollView(
+                      child: GridView.count(
+                        crossAxisCount: GetPlatform.isMobile ? 1 : 2,
+                        padding: const EdgeInsets.all(10),
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        children: controller.chartModels.isNotEmpty
+                            ? List.generate(
+                                controller.chartModels.length,
+                                (index) => _resolveChartType(controller.chartModels[index]),
+                              ).followedBy(
+                                [_BuildAddChartButton(() => Get.toNamed(FilterScreen.routeName))],
+                              ).toList()
+                            : [_BuildAddChartButton(() => Get.toNamed(FilterScreen.routeName))],
+                      ),
                     ),
                   ),
-                ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => Get.toNamed(FilterScreen.routeName),
-          backgroundColor: const Color(0xFF373856),
-          child: const Icon(Icons.filter_alt),
+          ),
         ),
       );
+
+  Widget _resolveChartType(ChartModel chartModel) {
+    Widget result;
+    if (chartModel.isError) {
+      result = const _BuildErrorChartInfo();
+    } else {
+      switch (chartModel.chartType) {
+        case ChartType.table:
+          result = _BuildTableChartData(chartData: chartModel.chartsData ?? []);
+          break;
+        case ChartType.line:
+          result = _BuildLineChartData(chartData: chartModel.chartsData ?? []);
+          break;
+        case ChartType.scatter:
+          result = _BuildScatterChartData(chartData: chartModel.chartsData ?? []);
+          break;
+        default: // case ChartType.pie:
+          result = _BuildPieChartData(chartData: chartModel.chartsData ?? []);
+          break;
+      }
+    }
+    // Wrap with InkWell for editing the chart
+    return InkWell(
+      onTap: () => Get.toNamed(FilterScreen.routeName, arguments: chartModel.chartId),
+      radius: 20,
+      child: result,
+    );
+  }
 }
 
 class _BuildPieChartData extends StatelessWidget {
@@ -62,7 +88,7 @@ class _BuildPieChartData extends StatelessWidget {
         margin: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0x44686799),
+          color: primaryLighterColor.withAlpha(50),
         ),
         child: PieChart(
           PieChartData(
@@ -70,7 +96,7 @@ class _BuildPieChartData extends StatelessWidget {
                 .map(
                   (data) => PieChartSectionData(
                     title: data.batiment.trim(),
-                    radius: 80,
+                    radius: GetPlatform.isMobile ? 120 : 80,
                     badgeWidget: Container(padding: const EdgeInsets.only(bottom: 30), child: Text(data.count.toString())),
                     color: Helpers.getColorFromHex(data.colorPaletteSeries[chartData.indexOf(data)]),
                   ),
@@ -87,9 +113,9 @@ class _BuildPieChartData extends StatelessWidget {
       );
 }
 
-class _BuildTableData extends StatelessWidget {
+class _BuildTableChartData extends StatelessWidget {
   final List<ChartData> chartData;
-  const _BuildTableData({required this.chartData});
+  const _BuildTableChartData({required this.chartData});
 
   @override
   Widget build(BuildContext context) => Container(
@@ -97,7 +123,7 @@ class _BuildTableData extends StatelessWidget {
         margin: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0x44686799),
+          color: primaryLighterColor.withAlpha(50),
         ),
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: true),
@@ -133,7 +159,7 @@ class _BuildLineChartData extends StatelessWidget {
         margin: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0x44686799),
+          color: primaryLighterColor.withAlpha(50),
         ),
         child: LineChart(
           LineChartData(
@@ -178,7 +204,7 @@ class _BuildScatterChartData extends StatelessWidget {
         margin: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0x44686799),
+          color: primaryLighterColor.withAlpha(50),
         ),
         child: ScatterChart(
           ScatterChartData(
@@ -200,4 +226,66 @@ class _BuildScatterChartData extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _BuildAddChartButton extends StatelessWidget {
+  final Function() onAdd;
+  const _BuildAddChartButton(this.onAdd);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: primaryLighterColor.withAlpha(50),
+        ),
+        child: Center(
+          child: ElevatedButton(
+            onPressed: onAdd,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, minimumSize: const Size(200, 50)),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                'Add Chart',
+                style: TextStyle(color: primaryColor),
+              ),
+            ),
+          ),
+        ));
+  }
+}
+
+class _BuildErrorChartInfo extends StatelessWidget {
+  const _BuildErrorChartInfo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 60),
+      margin: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: primaryLighterColor.withAlpha(50),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: const [
+          SizedBox(height: 0),
+          Text(
+            'An error has been occured with this provided filtering data!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18),
+          ),
+          Text(
+            'Tap this container for editing',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
 }

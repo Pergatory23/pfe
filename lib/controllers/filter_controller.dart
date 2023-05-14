@@ -1,9 +1,10 @@
-import 'package:dashboard/controllers/dashboard_controller.dart';
-import 'package:dashboard/models/chart_filter.dart';
 import 'package:get/get.dart';
 
 import '../helpers/helpers.dart';
+import '../models/chart_filter.dart';
+import '../models/chart_model.dart';
 import '../services/database_meta_service.dart';
+import 'dashboard_controller.dart';
 
 enum FilterCriteria { measure, dimension, segment, time }
 
@@ -14,14 +15,23 @@ class FilterController extends GetxController {
   final List<String> dimensionOptions = [];
   final List<String> segmentOptions = [];
   final List<String> timeOptions = [];
+  final List<String> chartOptions = ['Pie Chart', 'Table Chart', 'Line Chart', 'Scatter Chart'];
   ChartFilter _chartFilter = ChartFilter(
+    index: 0,
     selectedMeasure: 'select a measure',
     selectedDimension: 'select a dimension',
     selectedSegment: 'select a segment',
     selectedTime: 'select a time',
   );
+  ChartType _chartType = ChartType.pie;
 
   ChartFilter get chartFilter => _chartFilter;
+  ChartType get chartType => _chartType;
+
+  set chartType(ChartType chartType) {
+    _chartType = chartType;
+    update();
+  }
 
   set chartFilter(ChartFilter chartFilter) {
     _chartFilter = chartFilter;
@@ -35,10 +45,10 @@ class FilterController extends GetxController {
   void _initialize() {
     // Fill all the dropdowns options
     final meta = DatabaseMetaService.find.databaseMeta;
-    measureOptions.add(chartFilter.selectedMeasure);
-    dimensionOptions.add(chartFilter.selectedDimension);
-    segmentOptions.add(chartFilter.selectedSegment);
-    timeOptions.add(chartFilter.selectedTime);
+    measureOptions.add(_chartFilter.selectedMeasure);
+    dimensionOptions.add(_chartFilter.selectedDimension);
+    segmentOptions.add(_chartFilter.selectedSegment);
+    timeOptions.add(_chartFilter.selectedTime);
     meta?.cubes?.forEach((cube) {
       measureOptions.addAll(cube.measures!.map((e) => e.name?.toLowerCase() ?? 'null').where((element) => element != 'null').toSet());
       dimensionOptions.addAll(cube.dimensions!.map((e) => e.name?.toLowerCase() ?? 'null').where((element) => element != 'null').toSet());
@@ -49,28 +59,41 @@ class FilterController extends GetxController {
     chartFilter = Helpers.getSavedUserFilter(forDropdown: true);
   }
 
-  void filterData() {
-    // Request a new filter and go back to the dashboard screen
+  void upsertChart(int? id) {
     Get.back();
-    DashboardController.find.chartFilter = chartFilter.clean();
+    chartFilter.index = id ?? -1;
+    DashboardController.find.upsertChart(chartFilter, chartType);
   }
 
-  updateFilter(FilterCriteria measure, String? value) {
+  void updateFilter(FilterCriteria measure, String? value) {
     switch (measure) {
       case FilterCriteria.dimension:
-        chartFilter.selectedDimension = value ?? 'select a dimension';
+        _chartFilter.selectedDimension = value ?? 'select a dimension';
         break;
       case FilterCriteria.segment:
-        chartFilter.selectedSegment = value ?? 'select a segment';
+        _chartFilter.selectedSegment = value ?? 'select a segment';
         break;
       case FilterCriteria.measure:
-        chartFilter.selectedMeasure = value ?? 'select a measure';
+        _chartFilter.selectedMeasure = value ?? 'select a measure';
         break;
       case FilterCriteria.time:
-        chartFilter.selectedTime = value ?? 'select a time';
+        _chartFilter.selectedTime = value ?? 'select a time';
         break;
       default:
     }
+    update();
+  }
+
+  void deleteChart(int? id) {
+    Get.back();
+    DashboardController.find.deleteChart(id);
+  }
+
+  void fetchEditableChart(int? id) {
+    if (id == null) return;
+    var existingChart = DashboardController.find.chartModels.singleWhere((element) => element.chartId == id);
+    chartFilter = existingChart.chartFilter!.normalizeForDropdown();
+    chartType = existingChart.chartType!;
     update();
   }
 }

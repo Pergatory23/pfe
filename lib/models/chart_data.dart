@@ -15,4 +15,14 @@ class ChartData {
   ];
 
   ChartData(this.batiment, this.count);
+
+  factory ChartData.fromJson(Map<String, dynamic> json) => ChartData(
+        json['batiment'],
+        json['count'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'batiment': batiment,
+        'count': count,
+      };
 }

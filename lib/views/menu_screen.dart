@@ -1,10 +1,9 @@
+import 'package:dashboard/helpers/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../helpers/assets.dart';
-import '../helpers/helpers.dart';
 import 'dashboard_screen.dart';
-import 'home_screen.dart';
 import 'widgets/menu_button.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -23,7 +22,7 @@ class MenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF363567),
+      backgroundColor: primaryColor,
       body: Stack(
         children: [
           Transform.rotate(
@@ -37,13 +36,13 @@ class MenuScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(80),
                 gradient: const LinearGradient(
                   begin: Alignment.bottomLeft,
-                  colors: [Color(0xffFD8BAB), Color(0xFFFD44C4)],
+                  colors: [secondaryLighterColor, secondaryColor],
                 ),
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30).copyWith(top: GetPlatform.isMobile ? 70 : 30),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -72,7 +71,7 @@ class MenuScreen extends StatelessWidget {
                       crossAxisCount: 2,
                       mainAxisSpacing: 30,
                       crossAxisSpacing: 30,
-                      childAspectRatio: 1.5,
+                      childAspectRatio: 1.1,
                       padding: const EdgeInsets.symmetric(horizontal: 15),
                       shrinkWrap: true,
                       physics: const ScrollPhysics(),

@@ -1,3 +1,4 @@
+import 'package:dashboard/helpers/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,7 +27,7 @@ class DashboardDrawer extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: <Widget>[
             const DrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFF363567)),
+              decoration: BoxDecoration(color: primaryColor),
               child: Center(
                 child: Text(
                   'Dashboard Menu',

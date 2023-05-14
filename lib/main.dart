@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(
           name: FilterScreen.routeName,
-          page: () => const FilterScreen(),
+          page: () => FilterScreen(id: Get.arguments),
           binding: BindingsBuilder.put(() => FilterController()),
         ),
       ],
