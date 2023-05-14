@@ -90,7 +90,7 @@ class FilterController extends GetxController {
   }
 
   void fetchEditableChart(int? id) {
-    if (id == null) return;
+    if (id == null || id < 0) return;
     var existingChart = DashboardController.find.chartModels.singleWhere((element) => element.chartId == id);
     chartFilter = existingChart.chartFilter!.normalizeForDropdown();
     chartType = existingChart.chartType!;

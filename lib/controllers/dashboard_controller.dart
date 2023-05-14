@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dashboard/helpers/constants.dart';
 import 'package:dashboard/helpers/helpers.dart';
+import 'package:dashboard/services/database_meta_service.dart';
 import 'package:dashboard/services/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,7 +12,7 @@ import '../models/chart_data.dart';
 import '../models/chart_filter.dart';
 import '../models/chart_model.dart';
 
-const baseURL = 'http://localhost:4000/cubejs-api/v1/load?query=';
+const baseURL = '${hostname}load?query=';
 
 class DashboardController extends GetxController {
   static DashboardController get find => Get.find<DashboardController>();
@@ -69,6 +70,7 @@ class DashboardController extends GetxController {
       return result;
     } catch (exception) {
       debugPrint('Error occured: $exception');
+      Helpers.showErrorSnackbar('Error occured: $exception');
     }
     return null;
   }
@@ -97,9 +99,13 @@ class DashboardController extends GetxController {
         chartModels.singleWhere((element) => element.chartId == chartFilter.index).isError = true;
       }
     } else {
-      chartModel?.chartId = index++;
-      chartModel?.chartFilter?.index = index;
-      chartModels.add(chartModel ?? ChartModel.error());
+      if (chartModel == null) {
+        chartModels.add(ChartModel.error());
+      } else {
+        chartModel.chartId = index++;
+        chartModel.chartFilter?.index = index;
+        chartModels.add(chartModel);
+      }
     }
     Helpers.saveUserDashboard(chartModels);
     isLoading(false);

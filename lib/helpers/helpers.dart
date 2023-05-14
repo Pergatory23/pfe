@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../models/chart_filter.dart';
 import '../models/chart_model.dart';
 import '../services/shared_preferences.dart';
+import 'colors.dart';
 import 'constants.dart';
 
 class Helpers {
@@ -52,4 +54,16 @@ class Helpers {
   static void saveUserDashboard(List<ChartModel> chartModels) {
     SharedPreferencesService.find.add(dashbordKey, jsonEncode(chartModels.map((e) => e.toJson()).toList()));
   }
+
+  static void showErrorSnackbar(String message) => Future.delayed(
+      const Duration(milliseconds: 500),
+      () => Get.snackbar(
+            'Error occured',
+            message,
+            snackStyle: SnackStyle.FLOATING,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: primaryColor,
+            margin: const EdgeInsets.only(bottom: 10),
+            colorText: Colors.white,
+          ));
 }

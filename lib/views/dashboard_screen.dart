@@ -51,21 +51,21 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _resolveChartType(ChartModel chartModel) {
     Widget result;
-    if (chartModel.isError) {
+    if (chartModel.isError || (chartModel.chartsData?.isEmpty ?? true)) {
       result = const _BuildErrorChartInfo();
     } else {
       switch (chartModel.chartType) {
         case ChartType.table:
-          result = _BuildTableChartData(chartData: chartModel.chartsData ?? []);
+          result = _BuildTableChartData(chartData: chartModel.chartsData!);
           break;
         case ChartType.line:
-          result = _BuildLineChartData(chartData: chartModel.chartsData ?? []);
+          result = _BuildLineChartData(chartData: chartModel.chartsData!);
           break;
         case ChartType.scatter:
-          result = _BuildScatterChartData(chartData: chartModel.chartsData ?? []);
+          result = _BuildScatterChartData(chartData: chartModel.chartsData!);
           break;
         default: // case ChartType.pie:
-          result = _BuildPieChartData(chartData: chartModel.chartsData ?? []);
+          result = _BuildPieChartData(chartData: chartModel.chartsData!);
           break;
       }
     }
@@ -92,16 +92,25 @@ class _BuildPieChartData extends StatelessWidget {
         ),
         child: PieChart(
           PieChartData(
-            sections: chartData
-                .map(
-                  (data) => PieChartSectionData(
+            sections: chartData.map(
+              (data) {
+                PieChartSectionData? result;
+                try {
+                  int dataIndex = chartData.indexOf(data);
+                  if (dataIndex > 9) dataIndex = dataIndex % 10;
+                  result = PieChartSectionData(
                     title: data.batiment.trim(),
                     radius: GetPlatform.isMobile ? 120 : 80,
                     badgeWidget: Container(padding: const EdgeInsets.only(bottom: 30), child: Text(data.count.toString())),
-                    color: Helpers.getColorFromHex(data.colorPaletteSeries[chartData.indexOf(data)]),
-                  ),
-                )
-                .toList(),
+                    color: Helpers.getColorFromHex(data.colorPaletteSeries[dataIndex]),
+                  );
+                } catch (e) {
+                  debugPrint('Error in building the chart: $e');
+                  Helpers.showErrorSnackbar('Error in building the chart: $e');
+                }
+                return result!;
+              },
+            ).toList(),
             borderData: FlBorderData(show: false),
             sectionsSpace: 1,
             centerSpaceRadius: 30,

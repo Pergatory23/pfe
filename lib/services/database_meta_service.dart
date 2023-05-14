@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
+const hostname = 'http://localhost:4000/cubejs-api/v1/';
+
 class DatabaseMetaService extends GetxService {
   static DatabaseMetaService get find => Get.find<DatabaseMetaService>();
 
@@ -15,7 +17,7 @@ class DatabaseMetaService extends GetxService {
   Future<void> _fetchData() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:4000/cubejs-api/v1/meta'),
+        Uri.parse('${hostname}meta'),
       );
 
       if (response.statusCode == 200) {

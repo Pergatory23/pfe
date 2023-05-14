@@ -19,10 +19,10 @@ class ChartModel {
 
   factory ChartModel.fromJson(Map<String, dynamic> json) => ChartModel(
         chartId: json['chartId'],
-        chartsData: (json['chartsData'] as List).map((e) => ChartData.fromJson(e)).toList(),
-        chartFilter: ChartFilter.fromJson(json['chartFilter']),
-        chartType: Helpers.chartTypeFromString(json['chartType']),
-        isError: json['isError'],
+        chartsData: json['chartsData'] == null ? [] : (json['chartsData'] as List).map((e) => ChartData.fromJson(e)).toList(),
+        chartFilter: json['chartFilter'] == null ? null : ChartFilter.fromJson(json['chartFilter']),
+        chartType: json['chartType'] == null ? null : Helpers.chartTypeFromString(json['chartType']),
+        isError: json['isError'] || json['chartFilter'] == null,
       );
 
   Map<String, dynamic> toJson() => {
